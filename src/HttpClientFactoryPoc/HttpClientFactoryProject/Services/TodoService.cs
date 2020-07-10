@@ -5,7 +5,7 @@ namespace HttpClientFactoryProject.Services
 {
     public class TodoService : ITodoService
     {
-        public Task<TodoModel> GetTodo(int id)
+        public async Task<TodoModel> GetTodo(int id)
         {
             throw new System.NotImplementedException();
         }
