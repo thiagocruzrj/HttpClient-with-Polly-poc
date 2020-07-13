@@ -1,18 +1,14 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using HttpClientFactoryProject.Configuration;
 using HttpClientFactoryProject.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Polly;
+using Polly.Extensions.Http;
 
 namespace HttpClientFactoryProject
 {
@@ -31,7 +27,12 @@ namespace HttpClientFactoryProject
             services.Configure<ApiConfig>(Configuration.GetSection(nameof(ApiConfig)));
             services.AddSingleton<IApiConfig>(x => x.GetRequiredService<IOptions<ApiConfig>>().Value);
 
-            services.AddHttpClient<ITodoService, TodoService>(b => b.BaseAddress = new Uri(Configuration["ApiConfig:BaseUrl"]));
+            // Creating retry policy (try 3 times with timeout of 3 seconds)
+            var retryPolicy = HttpPolicyExtensions.HandleTransientHttpError()
+                .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(retryAttempt));
+
+            services.AddHttpClient<ITodoService, TodoService>(b => b.BaseAddress = new Uri(Configuration["ApiConfig:BaseUrl"]))
+                .AddPolicyHandler(retryPolicy);
             services.AddControllers();
         }
 
