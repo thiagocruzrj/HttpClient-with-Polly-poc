@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using HttpClientFactoryProject.Configuration;
+using HttpClientFactoryProject.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -30,6 +31,7 @@ namespace HttpClientFactoryProject
             services.Configure<ApiConfig>(Configuration.GetSection(nameof(ApiConfig)));
             services.AddSingleton<IApiConfig>(x => x.GetRequiredService<IOptions<ApiConfig>>().Value);
 
+            services.AddHttpClient<ITodoService, TodoService>(b => b.BaseAddress = new Uri(Configuration["ApiConfig:BaseUrl"]));
             services.AddControllers();
         }
 
